@@ -86,7 +86,7 @@ public class trademe extends Activity {
 	        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 	        startActivity(intent);
 		} catch (OAuthMessageSignerException e) {
-			// TODO Auto-generated catch block
+			// TODO Auto-generated catch block with a difference
 			e.printStackTrace();
 		} catch (OAuthNotAuthorizedException e) {
 			// TODO Auto-generated catch block
