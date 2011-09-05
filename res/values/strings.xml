@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, trademe!</string>
+    <string name="app_name">Android_Test</string>
+    <string name="trademe">Trademe</string>
+    <color name="header_background">#FDCE0C</color>
+</resources>
