@@ -16,6 +16,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -28,7 +29,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 
-public class CategoryPicker extends Activity {
+public class CategoryActivity extends Activity {
 	ListView lv;
 	TextView tv;
 	Stack<Category> st = new Stack<Category>();
@@ -52,67 +53,33 @@ public class CategoryPicker extends Activity {
 						updateCategoryView(next);
 						
 					}else{
-						Toast.makeText(arg0.getContext(), "You selected: " + current.getChildren()[(int) arg3].getName(), Toast.LENGTH_LONG)
-						.show();			
+						Intent data = getIntent().putExtra(Constants.CATEGORY_RESULT, current.getChildren()[(int) arg3].getName());
+						data.putExtra(Constants.CATEGORYNUMBER_RESULT, current.getChildren()[(int) arg3].getNumber());
+						setResult(Constants.CATEGORY_RESULTCODE, data);
+						finish();		
 					}
 				}
 				
 			});
-	        requestJsonCategories();
+	        updateCategoryView(TrademeHelper.categories);
+	        st.add(TrademeHelper.categories);
+	        //requestJsonCategories();
 	}
 	
-	private void requestJsonCategories(){
-		File cachegories = new File(getCacheDir() + "Categories.json");
-		JsonReader reader = null;
-		if(!cachegories.exists()){
-			HttpGet request = new HttpGet("http://api.trademe.co.nz/v1/Categories.json");
-			HttpClient httpClient = new DefaultHttpClient();
-			try {
-				
-				HttpResponse response = httpClient.execute(request);
-				InputStream inStream = response.getEntity().getContent();
-				FileOutputStream outStream = new FileOutputStream(cachegories, false);
-				byte[] data = new byte[10240];
-				int len = 0;
-				while((len = inStream.read(data))>0){
-					outStream.write(data, 0, len);
-				}
-				outStream.close();
-				inStream.close();
-			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
-				Toast.makeText(this.getApplicationContext(), "Client Protocol exception" , Toast.LENGTH_LONG)
-				.show();			
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				Toast.makeText(this.getApplicationContext(), "IO exception" , Toast.LENGTH_LONG)
-				.show();
-				e.printStackTrace();
-			}
-		}else{
-			
-			
-		}
-		
+	/*private void requestJsonCategories(){
+		File cachegories = TrademeHelper.getJSON(Constants.CATEGORIES_URL, false);
+
 		FileReader fRead = null;
 		try {
 			fRead = new FileReader(cachegories);
-			Scanner scan = new Scanner(fRead);
-			String json = "";
-			while(scan.hasNext()){
-				json += scan.nextLine();
-			}
-			reader = new JsonReader(fRead );
+			
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
+		
 		Gson gson = new Gson();
-		final Category root = gson.fromJson(reader, Category.class);
+		final Category root = gson.fromJson(fRead, Category.class);
 		st.add(root);
 		updateCategoryView(root);
 		try {
@@ -121,14 +88,17 @@ public class CategoryPicker extends Activity {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
+	}*/
 	
 	public void onBackPressed(){
 		if(st.size()>1){
 			st.pop();
 			updateCategoryView(st.peek());
 		}else{
-			super.onBackPressed();
+			Intent data = this.getIntent().putExtra(Constants.CATEGORY_RESULT, "");
+			data.putExtra(Constants.CATEGORYNUMBER_RESULT, "");
+			setResult(Constants.CATEGORY_RESULTCODE, data);
+			finish();
 		}
 	}
 	
@@ -137,4 +107,42 @@ public class CategoryPicker extends Activity {
 		lv.setAdapter(addy);
 		tv.setText(current.getName());
 	}
+	
+	public void selectCategory(View view){
+		Intent data = this.getIntent().putExtra(Constants.CATEGORY_RESULT, st.peek().getName());
+		data.putExtra(Constants.CATEGORYNUMBER_RESULT, st.peek().getNumber());
+		setResult(Constants.CATEGORY_RESULTCODE, data);
+		finish();
+	}
+	
 }
+
+//class CategoryAdapter extends ArrayAdapter<Category> {
+//
+//    private ArrayList<Order> items;
+//
+//    public OrderAdapter(Context context, int textViewResourceId, ArrayList<Order> items) {
+//            super(context, textViewResourceId, items);
+//            this.items = items;
+//    }
+//
+//    @Override
+//    public View getView(int position, View convertView, ViewGroup parent) {
+//            View v = convertView;
+//            if (v == null) {
+//                LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//                v = vi.inflate(R.layout.row, null);
+//            }
+//            Order o = items.get(position);
+//            if (o != null) {
+//                    TextView tt = (TextView) v.findViewById(R.id.toptext);
+//                    TextView bt = (TextView) v.findViewById(R.id.bottomtext);
+//                    if (tt != null) {
+//                          tt.setText("Name: "+o.getOrderName());                            }
+//                    if(bt != null){
+//                          bt.setText("Status: "+ o.getOrderStatus());
+//                    }
+//            }
+//            return v;
+//    }
+//}

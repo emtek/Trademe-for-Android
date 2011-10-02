@@ -4,4 +4,11 @@
     <string name="app_name">Android_Test</string>
     <string name="trademe">Trademe</string>
     <color name="header_background">#FDCE0C</color>
+    <string name="categories">Categories</string>
+    <string name="watchlist">Watchlist</string>
+    <string name="select">Select</string>
+    <string name="search">Search</string>
+    <string name="searchBtn">SearchButton</string>
+    <string name="title">Title</string>
+    <string name="body">Body</string>
 </resources>

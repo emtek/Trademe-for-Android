@@ -63,129 +63,98 @@ import android.widget.Toast;
 
 public class trademe extends Activity {
 	
-	OAuthProvider provider;
-	OAuthConsumer consumer;
-	Stack<Category> st = new Stack<Category>();
-	ListView lv;
-	final int VERIFICATION_DIALOG = 420;
+	TrademeHelper helper;
+	String currentCategoryNumber = "";
+	EditText searchBox;
+	protected Category fullList;
+	Runnable buildCategories = new Runnable(){
+		public void run(){
+			File cachegories = TrademeHelper.getJSON(Constants.CATEGORIES_URL, false);
+
+			FileReader fRead = null;
+			try {
+				fRead = new FileReader(cachegories);
+				
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			Gson gson = new Gson();
+			helper.setCategories(gson.fromJson(fRead, Category.class));
+			try {
+				fRead.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+	};
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-//        Intent in = new Intent(getBaseContext(), CategoryPicker.class);
-//        startActivity(in);
-        provider = new CommonsHttpOAuthProvider("https://secure.trademe.co.nz/Oauth/RequestToken?scope=MyTradeMeRead,MyTradeMeWrite,BiddingAndBuying", "https://secure.trademe.co.nz/Oauth/AccessToken",
-        		"https://secure.trademe.co.nz/Oauth/Authorize");
-        consumer = new CommonsHttpOAuthConsumer("53A1E4E603334A20FDBC23703A250FBDCE", "39AB0FF35C31E58D2627F9F2F58F6CB82F");
-//        //consumer.setSendEmptyTokens(true);
-//       
-//      
-        String url;
-		try {
-			url = provider.retrieveRequestToken(consumer, "oob");
-			Uri uri = Uri.parse(url);
-			 WebView webview = new WebView(this);
-			 webview.setWebViewClient(new WebViewClient(){
-				 public void onPageFinished(WebView view , String url){
-					 if(url.contains("veri")){
-						 setContentView(R.layout.main);
-						 String[] values = url.split("&oauth_verifier=");
-						 String verifier = values[1].substring(0, 7);
-						 try {
-								provider.retrieveAccessToken(consumer, verifier);
-								
-								File cachegories = new File(getCacheDir() + "/Watchlist.json");
-								if((!cachegories.exists())||(cachegories.lastModified()< (System.currentTimeMillis()-600000))){
-									HttpGet request = new HttpGet("https://api.trademe.co.nz/v1/MyTradeMe/Watchlist.json");
-									HttpClient httpClient = new DefaultHttpClient();
-									consumer.sign(request);
-									try {
-										
-										HttpResponse response = httpClient.execute(request);
-										InputStream inStream = response.getEntity().getContent();
-										FileOutputStream outStream = new FileOutputStream(cachegories, false);
-										byte[] data = new byte[10240];
-										int len = 0;
-										while((len = inStream.read(data))>0){
-											outStream.write(data, 0, len);
-										}
-										outStream.close();
-										inStream.close();
-									} catch (ClientProtocolException e) {
-										// TODO Auto-generated catch block
-										
-										e.printStackTrace();
-									} catch (IOException e) {
-										// TODO Auto-generated catch block
-										
-										e.printStackTrace();
-									}
-								}else{
-									
-									
-								}
-								
-								FileReader fRead = null;
-								try {
-									fRead = new FileReader(cachegories);
-									
-									Gson gson = new Gson();
-									final WatchList root = gson.fromJson(fRead, WatchList.class);
-									Thread.sleep(1000);
-								} catch (FileNotFoundException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								} catch (InterruptedException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-								
-							} catch (OAuthMessageSignerException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (OAuthNotAuthorizedException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (OAuthExpectationFailedException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (OAuthCommunicationException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							
-						  }
-					 }
-				 });
-			 
-			 setContentView(webview);
-			 webview.loadUrl(url);
-
-		} catch (OAuthMessageSignerException e) {
-			// TODO Auto-generated catch block with a difference
-			e.printStackTrace();
-		} catch (OAuthNotAuthorizedException e) {
-			// TODO Login again
-			e.printStackTrace();
-		} catch (OAuthExpectationFailedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (OAuthCommunicationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+        searchBox = (EditText)this.findViewById(R.id.searchBox);
+        helper = new TrademeHelper(this);
+        Thread thread =  new Thread(null, buildCategories, "CategoriesBackground");
+        thread.start();
     }
+    
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {     
+    	  super.onActivityResult(requestCode, resultCode, data); 
+    	  switch(requestCode) { 
+    	    case (Constants.LOGIN_RESULTCODE) : { 
+    	      if (resultCode == Activity.RESULT_OK) { 
+    	      String verifier = data.getStringExtra(Constants.LOGIN_VERIFIER);
+    	      helper.setVerifier(verifier);
+    	      // TODO Switch tabs using the index.
+    	      } 
+    	      break; 
+    	    } 
+    	    case (Constants.CATEGORY_RESULTCODE) : {
+    	    	String currentCategory = data.getStringExtra(Constants.CATEGORY_RESULT);
+    	    	currentCategoryNumber = data.getStringExtra(Constants.CATEGORYNUMBER_RESULT);
+    	    	Toast.makeText(this.getApplicationContext(), "You selected: " + currentCategory , Toast.LENGTH_LONG)
+				.show();	
+    	    	break;
+    	    }
+    	  } 
+    	}
+    
+    public void onStart(){
+    	super.onStart();
+    }
+    
+ 
     
 	public void onResume(){
 		super.onResume();
 		//showDialog(VERIFICATION_DIALOG);
 	}
+
+	public void openCategories(View view){
+		if(TrademeHelper.categories != null){
+			Intent catIntent = new Intent(this, CategoryActivity.class);
+			this.startActivityForResult(catIntent, Constants.CATEGORY_RESULTCODE);
+		}
+	}
 	
+	public void openWatchList(View view){
+		Intent catIntent = new Intent(this, ItemListActivity.class);
+		this.startActivityForResult(catIntent, Constants.WATCHLIST_RESULTCODE);
+	}
+	
+	public void search(View view){
+		Intent searchIntent = new Intent(this, ItemListActivity.class);
+		String category = "";
+		if(currentCategoryNumber !=null) category = "&category=" + currentCategoryNumber;
+		String query = searchBox.getText() + category;
+		searchIntent.putExtra(Constants.SEARCH_QUERYSTRING, query);
+		this.startActivityForResult(searchIntent, Constants.WATCHLIST_RESULTCODE);
+	}
 }
     

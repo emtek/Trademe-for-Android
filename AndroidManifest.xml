@@ -21,7 +21,11 @@
          		<data android:scheme="andy"/>
      </intent-filter>
         </activity>
-        <activity android:name="CategoryPicker"></activity>
+        <activity android:name="LoginActivity" android:permission="android.permission.INTERNET" android:launchMode="standard" android:excludeFromRecents="true" android:noHistory="true" android:enabled="true">
+        </activity>
+        <activity android:name=".CategoryActivity" android:enabled="true"></activity>
+        <activity android:name=".ItemListActivity"></activity>
+        <activity android:name="ItemDetailActivity"></activity>
 
     </application>
 </manifest>
