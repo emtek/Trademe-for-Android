@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent" android:orientation="vertical">
+    <LinearLayout android:layout_width="match_parent" android:id="@+id/linearLayout1" android:layout_height="wrap_content">
+        <Gallery android:layout_width="wrap_content" android:id="@+id/gallery1" android:layout_weight="1" android:layout_height="74dp"></Gallery>
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:id="@+id/linearLayout2" android:layout_height="wrap_content">
+        <TextView android:textAppearance="?android:attr/textAppearanceLarge" android:layout_height="wrap_content" android:text="@string/title" android:layout_width="match_parent" android:id="@+id/titleText"></TextView>
+    </LinearLayout>
+    <TextView android:text="@string/body" android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/bodyText"></TextView>
+    
+</LinearLayout>
